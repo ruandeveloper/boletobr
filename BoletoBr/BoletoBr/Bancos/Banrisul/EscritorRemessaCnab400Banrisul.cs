@@ -110,7 +110,11 @@ namespace BoletoBr.Bancos.Itau
                 detalhe = detalhe.PreencherValorNaLinha(22, 29, infoDetalhe.CodigoCedente.PadLeft(8,'0'));
                 detalhe = detalhe.PreencherValorNaLinha(30, 30, (infoDetalhe.DVCedente.Length > 1 ? infoDetalhe.DVCedente.Substring(0,1) : infoDetalhe.DVCedente) .PadLeft(1,'0'));
                 detalhe = detalhe.PreencherValorNaLinha(31, 37, string.Empty.PadLeft(7,' '));
-                detalhe = detalhe.PreencherValorNaLinha(38, 62, infoDetalhe.NumeroDocumento.PadLeft(25,'0'));
+
+                /// detalhe = detalhe.PreencherValorNaLinha(38, 62, infoDetalhe.NumeroDocumento.PadLeft(25,'0'));
+                detalhe = detalhe.PreencherValorNaLinha(38, 50, infoDetalhe.NumeroDocumento.PadLeft(13, '0'));
+                detalhe = detalhe.PreencherValorNaLinha(51, 62, string.Empty.PadLeft(12, '0'));
+
                 detalhe = detalhe.PreencherValorNaLinha(63, 72, infoDetalhe.NossoNumeroFormatado.Replace(",","").Replace("-","").Replace(".","").PadLeft(10,'0'));
                 detalhe = detalhe.PreencherValorNaLinha(73, 104, (infoDetalhe.MensagemLinha1 != null ? infoDetalhe.MensagemLinha1.Length <= 32 ? infoDetalhe.MensagemLinha1.PadLeft(32, ' '): infoDetalhe.MensagemLinha1.Substring(0,32): "").PadLeft(32, ' '));
                 detalhe = detalhe.PreencherValorNaLinha(105, 107, string.Empty.PadLeft(3,' '));
@@ -218,9 +222,10 @@ namespace BoletoBr.Bancos.Itau
                  */
 
 
-                var codigoInstrucao = infoDetalhe.NroDiasParaProtesto > 0 ? "09" : 
-                                        infoDetalhe.PrazoBaixaDevolucao > 0 ? "15" :
-                                        "23";
+                var codigoInstrucao = infoDetalhe.NroDiasParaProtesto > 0 ? "09"
+                                        : infoDetalhe.PrazoBaixaDevolucao > 0 ? "15"
+                                        : infoDetalhe.PercentualMulta > 0 ? "18"
+                                        : "23";
                 var Instrucao = infoDetalhe.NroDiasParaProtesto > 0 ? infoDetalhe.NroDiasParaProtesto :
                     infoDetalhe.PrazoBaixaDevolucao > 0 ? infoDetalhe.PrazoBaixaDevolucao : 0;
                 detalhe = detalhe.PreencherValorNaLinha(157, 158, codigoInstrucao.PadLeft(2,'0'));
@@ -269,9 +274,12 @@ namespace BoletoBr.Bancos.Itau
                 
                 detalhe = detalhe.PreencherValorNaLinha(335, 349, cidadeSacado.PadRight(15, ' '));
                 detalhe = detalhe.PreencherValorNaLinha(350, 351, infoDetalhe.UfPagador.PadRight(2, ' '));
-                detalhe = detalhe.PreencherValorNaLinha(352, 355, string.Empty.PadLeft(4,'0'));//TAXA AO DIA PARA PAGAMENTO ANTECIPADO
-                detalhe = detalhe.PreencherValorNaLinha(356, 357, string.Empty.PadLeft(2, ' '));
-                detalhe = detalhe.PreencherValorNaLinha(358, 369, string.Empty.PadLeft(12, carteiras.Contains(infoDetalhe.CarteiraCobranca.ToUpper()) ? ' ': '0'));//VALOR PARA CÁLCULO DO DESCONTO
+
+                /// detalhe = detalhe.PreencherValorNaLinha(352, 355, string.Empty.PadLeft(4,'0'));//TAXA AO DIA PARA PAGAMENTO ANTECIPADO
+                /// detalhe = detalhe.PreencherValorNaLinha(356, 357, string.Empty.PadLeft(2, ' '));
+                /// detalhe = detalhe.PreencherValorNaLinha(358, 369, string.Empty.PadLeft(12, carteiras.Contains(infoDetalhe.CarteiraCobranca.ToUpper()) ? ' ': '0'));//VALOR PARA CÁLCULO DO DESCONTO
+                detalhe = detalhe.PreencherValorNaLinha(352, 369, string.Empty.PadLeft(18, ' '));
+
                 detalhe = detalhe.PreencherValorNaLinha(370, 371, infoDetalhe.NroDiasParaProtesto.ToString().PadLeft(2, '0'));
                 detalhe = detalhe.PreencherValorNaLinha(372, 394, string.Empty.PadLeft(23, ' '));
                 // Nro Sequencial do Registro no Arquivo
