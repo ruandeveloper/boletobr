@@ -99,10 +99,9 @@ namespace BoletoBr.Bancos.Banrisul
             if (boleto.CedenteBoleto.DigitoCedente.Equals(-1))
                 boleto.CedenteBoleto.DigitoCedente = Convert.ToInt32(dvCodigoCedente);
 
-            boleto.CedenteBoleto.CodigoCedenteFormatado = String.Format("{0}/{1}-{2}",
+            boleto.CedenteBoleto.CodigoCedenteFormatado = String.Format("{0}/{1}",
                 boleto.CedenteBoleto.ContaBancariaCedente.Agencia.PadLeft(4, '0'),
-                codigoCedente,
-                dvCodigoCedente);
+                codigoCedente);
         }
 
         public void FormataCodigoBarra(Boleto boleto)
@@ -114,14 +113,22 @@ namespace BoletoBr.Bancos.Banrisul
                 /*dados*/
                 var constanteProduto = boleto.CarteiraCobranca.BancoEmiteBoleto ? "1" : "2";
                 var argencia = boleto.CedenteBoleto.ContaBancariaCedente.Agencia.Replace(".", "").Replace("/", "").Replace("-", "").Replace(",", "").PadLeft(4, '0');
-                var codigoCedente = boleto.CedenteBoleto.CodigoCedente.PadLeft(7, '0');
+                var codigoCedente = boleto.CedenteBoleto.CodigoCedente.Substring(0, 7);
                 var nossoNumero = boleto.IdentificadorInternoBoleto.PadLeft(8, '0');
                 /*dados formatados*/
                 var dadosFormatados = $@"{constanteProduto}1{argencia}{codigoCedente}{nossoNumero}40";
                 var DVNCDadosFormatados = Common.DigitoVerificadorBanrisulNC(dadosFormatados);
-                var DAC = Common.Mod11($@"{constanteCCCC}{dadosFormatados}",9);
                 var fatorVencimento = Common.FatorVencimento(boleto.DataVencimento).ToString().PadLeft(4,'0');
                 string valorBoleto = boleto.ValorBoleto.ToString("f").Replace(",", "").Replace(".", "").PadLeft(10, '0');
+
+                /*
+                    O dígito de autoconferência – DAC – ocupa a posição 5 do código de barras, conforme especificações
+                    padrão Febraban.
+                    Para o cálculo é feito utilizando o módulo 11, porém, com pesos diferentes do segundo dígito verificador.
+                    Considerar as posições de ->> (1 a 4) e de ->> (6 a 44) do código de barras e atribuir pesos de 2 a 9 da direita para a
+                    esquerda.
+                   */
+                var DAC = Common.Mod11($@"{constanteCCCC}{fatorVencimento}{valorBoleto}{dadosFormatados}{DVNCDadosFormatados}", 9);
 
                 boleto.CodigoBarraBoleto =
                         string.Format("{0}{1}{2}{3}{4}{5}",
@@ -155,7 +162,7 @@ namespace BoletoBr.Bancos.Banrisul
                 var argencia = boleto.CedenteBoleto.ContaBancariaCedente.Agencia.Replace(".", "").Replace("/", "").Replace("-", "").Replace(",", "").PadLeft(4, '0');
                 var grupo2 = $@"1{argencia.Substring(0,3)}{Common.Mod10( $@"{grupo1}1{argencia.Substring(0,3)}")}";
                 /*Grupo 3*/
-                var codigoCedente = boleto.CedenteBoleto.CodigoCedente.PadLeft(7, '0');
+                var codigoCedente = boleto.CedenteBoleto.CodigoCedente.Substring(0, 7);
                 var grupo3 = $@"{argencia.Substring(3,1)}{codigoCedente.Substring(0,4)}";
                 /*Grupo 4*/
                 var nossoNumero = boleto.IdentificadorInternoBoleto.PadLeft(8, '0');
@@ -168,13 +175,14 @@ namespace BoletoBr.Bancos.Banrisul
                 var XX = Common.DigitoVerificadorBanrisulNC(dadosFormatados);
                 var grupo6SemDigito = $@"{nossoNumero.Substring(7, 1)}40{XX}";
                 var grupo6 = $@"{grupo6SemDigito}{Common.Mod10($@"{grupo5}{grupo6SemDigito}")}";
-                /*Grupo 7*/
-                var grupo7Dv = Common.Mod11($@"{constanteCCCC}{dadosFormatados}", 9);
                 /*grupo 8*/
                 string valorBoleto = boleto.ValorBoleto.ToString("f").Replace(",", "").Replace(".", "").PadLeft(10, '0');
                 var fatorVencimento = Common.FatorVencimento(boleto.DataVencimento).ToString().PadLeft(4, '0');
                 var grupo8 = $@"{fatorVencimento}{valorBoleto}";
-                
+
+                /*Grupo 7*/
+                var DAC = Common.Mod11($@"{constanteCCCC}{fatorVencimento}{valorBoleto}{dadosFormatados}{XX}", 9);
+
                 boleto.LinhaDigitavelBoleto =
                     string.Format("{0}.{1} {2}.{3} {4}.{5} {6} {7}",
                         grupo1, /*0*/
@@ -183,7 +191,7 @@ namespace BoletoBr.Bancos.Banrisul
                         grupo4,/*3*/
                         grupo5,/*4*/
                         grupo6, /*5*/
-                        grupo7Dv,/*6*/
+                        DAC,/*6*/
                         grupo8/*7*/
                     );
             }
@@ -205,7 +213,7 @@ namespace BoletoBr.Bancos.Banrisul
             
             boleto.SetNossoNumeroFormatado((boleto.IdentificadorInternoBoleto.Length > 8 ? boleto.IdentificadorInternoBoleto.Substring(0, 8) : boleto.IdentificadorInternoBoleto).PadLeft(8, '0'));
             
-            dvNossoNumeroNC = Common.DigitoVerificadorBanrisulNC(boleto.NossoNumeroFormatado).ToString(CultureInfo.InvariantCulture);
+            dvNossoNumeroNC = Common.DigitoVerificadorBanrisulNC(boleto.NossoNumeroFormatado).ToString(CultureInfo.InvariantCulture).PadLeft(2, '0');
             
             boleto.SetNossoNumeroFormatado(string.Format("{0}-{1}", boleto.NossoNumeroFormatado, dvNossoNumeroNC));
         }
