@@ -88,9 +88,8 @@ namespace BoletoBr
 
         }
 
-        public static int Mod11BanrisulPeso7(string seq)
+        public static int RestoMod11BanrisulPeso7(string seq)
         {
-            int digito;
             int soma = 0;
             int peso = 2;
 
@@ -102,32 +101,51 @@ namespace BoletoBr
                 else
                     peso = peso + 1;
             }
-            digito = 11 - (soma < 11 ? soma : soma % 11);
-            return digito;
+
+            var resto = (soma < 11 ? soma : soma % 11);
+
+            return resto;
         }
 
         public static int DigitoVerificadorBanrisulNC(string seq, int? digitoNAdd = null )
         {
             int digitoN;
+            int restoC;
             int digitoC;
-            int soma = 0;
-            int peso = 2;
+
+            #region Digito N
+
             if (digitoNAdd == null)
                 digitoN = Mod10(seq);
             else
                 digitoN = digitoNAdd.GetValueOrDefault();
-            digitoC = Mod11BanrisulPeso7($@"{seq}{digitoN}");
 
-            if (digitoC == 11)
-                digitoC = 0;
+            #endregion
 
-            if (digitoC > 9 || digitoC == 1)
+            #region Digito C
+
+            // Obtem o resto
+            restoC = RestoMod11BanrisulPeso7($@"{seq}{digitoN}");
+
+            if(restoC == 0 || restoC == 11)
             {
-                digitoN++;
-                digitoC = DigitoVerificadorBanrisulNC(seq, (digitoN > 9 ? 0 : digitoN));
-                return digitoC;
+                digitoC = 0;
             }
-            
+
+            else if (restoC == 1)
+            {
+                return DigitoVerificadorBanrisulNC(seq, 
+                    digitoN == 9 
+                        ? 0 
+                        : digitoN + 1);
+            }
+
+            else
+            {
+                digitoC = (11 - restoC);
+            }
+
+            #endregion           
 
             var ret = $@"{digitoN}{digitoC}";
             return Convert.ToInt32(ret);
