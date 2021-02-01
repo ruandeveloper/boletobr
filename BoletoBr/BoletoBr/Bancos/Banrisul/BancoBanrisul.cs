@@ -117,7 +117,7 @@ namespace BoletoBr.Bancos.Banrisul
                 var nossoNumero = boleto.IdentificadorInternoBoleto.PadLeft(8, '0');
                 /*dados formatados*/
                 var dadosFormatados = $@"{constanteProduto}1{argencia}{codigoCedente}{nossoNumero}40";
-                var DVNCDadosFormatados = Common.DigitoVerificadorBanrisulNC(dadosFormatados);
+                var DVNCDadosFormatados = Common.DigitoVerificadorBanrisulNC(dadosFormatados).ToString().PadLeft(2, '0');
                 var fatorVencimento = Common.FatorVencimento(boleto.DataVencimento).ToString().PadLeft(4,'0');
                 string valorBoleto = boleto.ValorBoleto.ToString("f").Replace(",", "").Replace(".", "").PadLeft(10, '0');
 
@@ -172,7 +172,7 @@ namespace BoletoBr.Bancos.Banrisul
                 var grupo5 = $@"{nossoNumero.Substring(2, 5)}";
                 /*Grupo 6*/
                 var dadosFormatados = $@"{constanteProduto}1{argencia}{codigoCedente}{nossoNumero}40";
-                var XX = Common.DigitoVerificadorBanrisulNC(dadosFormatados);
+                var XX = Common.DigitoVerificadorBanrisulNC(dadosFormatados).ToString().PadLeft(2, '0');
                 var grupo6SemDigito = $@"{nossoNumero.Substring(7, 1)}40{XX}";
                 var grupo6 = $@"{grupo6SemDigito}{Common.Mod10($@"{grupo5}{grupo6SemDigito}")}";
                 /*grupo 8*/
